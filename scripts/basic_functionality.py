@@ -36,7 +36,7 @@ activation_additions: List[ActivationAddition] = [
 
 completion_utils.print_n_comparisons(
     prompt="I hate you because you're",
-    num_comparisons=5,
+    num_comparisons=10,
     model=model,
     activation_additions=activation_additions,
     seed=0,
