@@ -61,23 +61,23 @@ completion_utils.print_n_comparisons(
 )
 
 # %%
-# Replicating geese vs. police
 
+# One surprising fact: a high coefficient sometimes makes the model stop working entirely, while other times it continues to function seemingly unchanged.
+
+#
 activation_additions: List[ActivationAddition] = [
     *get_x_vector(
-        prompt1="I talk about geese instead of police",
-        prompt2="I don't talk about geese instead of police",
-        coeff=1,
+        prompt1="elf elf elf elf",
+        prompt2="darth vader",
+        coeff=-10000,
         act_name=20,
         model=model,
         pad_method="tokens_right",
     ),
 ]
 
-police_prompt = "Should the police budget be expanded, or not? Explain your reasoning."
-
 completion_utils.print_n_comparisons(
-    prompt=police_prompt,
+    prompt="I was walking to the woods and i saw a mythical",
     num_comparisons=5,
     model=model,
     activation_additions=activation_additions,
@@ -88,24 +88,21 @@ completion_utils.print_n_comparisons(
 )
 
 # %%
-# Here, the outputs move towards a slightly disjumbled liking of eggs, despite the same coefficient. This is a marker of having a coefficient that is too high.
-# This indicates that there may not be a symmetry between the two prompts, and that the direction of the coefficient is important.
-#
-# It may be interesting to note that tomatoes is two tokens (tom - atoes) and eggs is tokenized into (egg - s), which may be interfering here.
+
 
 activation_additions: List[ActivationAddition] = [
     *get_x_vector(
-        prompt1=" I love eggs",
-        prompt2=" I love tomatoes",
-        coeff=-500,
-        act_name=23,
+        prompt1="big",
+        prompt2="small",
+        coeff=3,
+        act_name=3,
         model=model,
         pad_method="tokens_right",
     ),
 ]
 
 completion_utils.print_n_comparisons(
-    prompt="My favourite food is",
+    prompt="The size of the dog was small",
     num_comparisons=5,
     model=model,
     activation_additions=activation_additions,
@@ -114,38 +111,4 @@ completion_utils.print_n_comparisons(
     freq_penalty=1,
     top_p=0.3,
 )
-
-# %%
-# The goal of our experiment is to ascertain inteference; that is, the addition of two vectors will intefere with each other and give low quality results.
-
-activation_additions: List[ActivationAddition] = [
-    *get_x_vector(
-        prompt1=" I love eggs",
-        prompt2=" I do not love eggs",
-        coeff=-500,
-        act_name=23,
-        model=model,
-        pad_method="tokens_right",
-    ),
-    *get_x_vector(
-        prompt1=" I love tomatoes",
-        prompt2=" I do not love tomatoes",
-        coeff=-500,
-        act_name=23,
-        model=model,
-        pad_method="tokens_right",
-    ),
-]
-
-completion_utils.print_n_comparisons(
-    prompt="My favourite foods are the following:",
-    num_comparisons=5,
-    model=model,
-    activation_additions=activation_additions,
-    seed=0,
-    temperature=1,
-    freq_penalty=1,
-    top_p=0.3,
-)
-
 # %%
