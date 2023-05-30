@@ -30,19 +30,27 @@ _ = model.to("cuda")
 
 # We are now talking about excitement/boredom
 
+# David McSharry books a prediction:
+# It's necessary for a prompt to be on the same topic as the vector, otherwise the vector will be ignored.
+# => TODO
+
+# Gytis Daujotas
+# It seems that this vector is actually making the model more likely to fix the problem
+# => lost
+
 activation_additions: List[ActivationAddition] = [
     *get_x_vector(
         prompt1="excitement",
         prompt2="boredom",
-        coeff=-10,
-        act_name=16,
+        coeff=6,
+        act_name=6,
         model=model,
         pad_method="tokens_right",
     ),
 ]
 
 completion_utils.print_n_comparisons(
-    prompt="I was walking to the woods",
+    prompt="I am so bored",
     num_comparisons=5,
     model=model,
     activation_additions=activation_additions,
