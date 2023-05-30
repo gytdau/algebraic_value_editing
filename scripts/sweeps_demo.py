@@ -32,10 +32,10 @@ _ = MODEL.to("cuda:0")
 # Alex's notebook.
 weddings_prompts = [
     *prompt_utils.get_x_vector(
-        prompt1="I always talk about weddings",
-        prompt2="I never talk about weddings",
+        prompt1="I talk about weddings constantly",
+        prompt2="I do not talk about weddings constantly",
         coeff=4,
-        act_name=6,
+        act_name=20,
         pad_method="tokens_right",
         model=MODEL,
         custom_pad_id=int(MODEL.to_single_token(" ")),
@@ -44,7 +44,7 @@ weddings_prompts = [
 
 completion_utils.print_n_comparisons(
     model=MODEL,
-    prompt="Frozen starts off with a scene about",
+    prompt="I went up to my friend",
     tokens_to_generate=50,
     activation_additions=weddings_prompts,
     num_comparisons=7,
