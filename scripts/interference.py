@@ -26,19 +26,23 @@ _ = model.to("cuda")
 
 # This is a successful egg liking/hatred vector, but it falls apart if the prompt fails to mention eggs. It's not clear if the actual vector is about sentiment in general or if it's about eggs.
 
+# WE HAVE GIVEN UP ON THIS APPROACH. IT IS TOO HARD TO FIND A SUCCESSFUL VECTOR.
+
+# We are now talking about excitement/boredom
+
 activation_additions: List[ActivationAddition] = [
     *get_x_vector(
-        prompt1="Greatness of eggs",
-        prompt2="Badness of eggs",
-        coeff=-1,
-        act_name=22,
+        prompt1="excitement",
+        prompt2="boredom",
+        coeff=-10,
+        act_name=16,
         model=model,
         pad_method="tokens_right",
     ),
 ]
 
 completion_utils.print_n_comparisons(
-    prompt="My opinion about eggs is that",
+    prompt="I was walking to the woods",
     num_comparisons=5,
     model=model,
     activation_additions=activation_additions,
