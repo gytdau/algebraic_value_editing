@@ -10,6 +10,7 @@ conn = sqlite3.connect("steering_vectors.db")
 # Load candidates and results table into pandas DataFrames
 candidates_df = pd.read_sql_query("SELECT * from candidates", conn)
 results_df = pd.read_sql_query("SELECT * from results", conn)
+challenges_df = pd.read_sql_query("SELECT * from challenges", conn)
 
 # Close the connection
 conn.close()
@@ -17,6 +18,12 @@ conn.close()
 # Join candidates_df and results_df on 'id' field of candidates
 joined_df = results_df.set_index("candidate_id").join(
     candidates_df.set_index("id"), how="left"
+)
+
+joined_df = (
+    joined_df.reset_index()
+    .set_index("challenge_id")
+    .join(challenges_df.set_index("id"), how="left")
 )
 
 steered = joined_df[joined_df["experiment_group"] == "steered"]
@@ -69,18 +76,17 @@ styled_table
 # Let's print the completions for this candidate.
 
 interesting_results = joined_df[
-    (joined_df["prompt1"] == "worried")
-    & (joined_df["experiment_group"] == "steered")
-    & (joined_df["act_name"] == 22)
+    (joined_df["prompt1"] == "I assist willingly")
+    & (joined_df["experiment_group"] == "control")
 ]
 
 interesting_results = interesting_results[
-    ["completion", "act_name", "experiment_group"]
+    ["completion", "act_name", "prompt", "experiment_group"]
 ]
 
 # Wrap the completion text to 100 characters
 interesting_results["completion"] = interesting_results["completion"].str.wrap(100)
 
-interesting_results.style.format({"completion": lambda x: ("I am feeling " + x)})
+interesting_results.style
 
 # %%
