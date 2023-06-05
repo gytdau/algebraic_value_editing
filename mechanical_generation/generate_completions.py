@@ -29,10 +29,19 @@ model: HookedTransformer = HookedTransformer.from_pretrained(
 )
 _ = model.to("cuda")
 
+# The price is:
+# 33 candidates
+# 17 challenges
+# 3 layers
+# = 33 * 17 * 3 = 1782 discrete things
+# 6 samplings per discrete thing = 1782 * 6 = 10692 samples
+# = 10692 * 50 = 534600 tokens
+# $0.02 per thousand tokens = $10.69
+
 # %%
 
 cached_control = None
-act_names = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]
+act_names = [4, 10, 16]
 
 
 def connect_to_database(database_name: str):
@@ -76,9 +85,10 @@ def generate_completions_for_candidate(
                 #         f"Skipping generation for candidate {candidate_id} and challenge {challenge_id} (already in database)"
                 #     )
                 #     continue
+                print(f"Challenge {challenge_id}")
 
                 challenge_prompt = challenge[1]
-                prompts = [challenge_prompt] * 5
+                prompts = [challenge_prompt] * 3
 
                 steered, control = generate_completions(
                     model, activation_additions, prompts

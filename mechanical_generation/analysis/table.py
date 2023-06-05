@@ -69,12 +69,17 @@ styled_table
 # Let's print the completions for this candidate.
 
 interesting_results = joined_df[
-    (joined_df["prompt1"] == "cheerful") & (joined_df["experiment_group"] == "steered")
+    (joined_df["prompt1"] == "worried")
+    & (joined_df["experiment_group"] == "steered")
+    & (joined_df["act_name"] == 22)
 ]
 
 interesting_results = interesting_results[
     ["completion", "act_name", "experiment_group"]
 ]
+
+# Wrap the completion text to 100 characters
+interesting_results["completion"] = interesting_results["completion"].str.wrap(100)
 
 interesting_results.style.format({"completion": lambda x: ("I am feeling " + x)})
 
