@@ -32,6 +32,7 @@ _ = model.to("cuda")
 # %%
 
 cached_control = None
+act_names = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]
 
 
 def connect_to_database(database_name: str):
@@ -60,50 +61,65 @@ def generate_completions_for_candidate(
         f"Generating completions for candidate {candidate[0]} - {prompt1} vs {prompt2}"
     )
 
-    activation_additions = get_activation_additions(prompt1, prompt2, model)
+    for act_name in act_names:
+        activation_additions = get_activation_additions(
+            prompt1, prompt2, model, act_name
+        )
 
-    for challenge in challenges:
-        try:
-            candidate_id = candidate[0]
-            challenge_id = challenge[0]
+        for challenge in challenges:
+            try:
+                candidate_id = candidate[0]
+                challenge_id = challenge[0]
 
-            if (candidate_id, challenge_id) in existing_results:
-                print(
-                    f"Skipping generation for candidate {candidate_id} and challenge {challenge_id} (already in database)"
+                # if (candidate_id, challenge_id) in existing_results:
+                #     print(
+                #         f"Skipping generation for candidate {candidate_id} and challenge {challenge_id} (already in database)"
+                #     )
+                #     continue
+
+                challenge_prompt = challenge[1]
+                prompts = [challenge_prompt] * 5
+
+                steered, control = generate_completions(
+                    model, activation_additions, prompts
                 )
-                continue
 
-            challenge_prompt = challenge[1]
-            prompts = [challenge_prompt] * 5
+                with conn:
+                    for i, completion in enumerate(steered):
+                        insert_completion(
+                            cursor,
+                            candidate_id,
+                            challenge_id,
+                            i,
+                            "steered",
+                            completion,
+                            act_name,
+                        )
 
-            steered, control = generate_completions(
-                model, activation_additions, prompts
-            )
+                    for i, completion in enumerate(control):
+                        insert_completion(
+                            cursor,
+                            candidate_id,
+                            challenge_id,
+                            i,
+                            "control",
+                            completion,
+                            act_name,
+                        )
 
-            with conn:
-                for i, completion in enumerate(steered):
-                    insert_completion(
-                        cursor, candidate_id, challenge_id, i, "steered", completion
-                    )
-
-                for i, completion in enumerate(control):
-                    insert_completion(
-                        cursor, candidate_id, challenge_id, i, "control", completion
-                    )
-
-                conn.commit()
-        except Exception as e:
-            print(f"Error generating completions for challenge {challenge_id}")
-            print(e)
+                    conn.commit()
+            except Exception as e:
+                print(f"Error generating completions for challenge {challenge_id}")
+                print(e)
 
 
-def get_activation_additions(prompt1, prompt2, model):
+def get_activation_additions(prompt1, prompt2, model, act_name):
     """Returns the activation additions for a given prompt pair."""
     return get_x_vector(
         prompt1=prompt1,
         prompt2=prompt2,
-        coeff=3,
-        act_name=6,
+        coeff=1,
+        act_name=act_name,
         model=model,
         pad_method="tokens_right",
     )
@@ -146,15 +162,29 @@ def generate_completions(model, activation_additions, prompts):
 
 
 def insert_completion(
-    cursor, candidate_id, challenge_id, sample_number, experiment_group, completion
+    cursor,
+    candidate_id,
+    challenge_id,
+    sample_number,
+    experiment_group,
+    completion,
+    act_name,
 ):
     """Inserts a completion into the database."""
     cursor.execute(
         """
-        INSERT INTO results (candidate_id, challenge_id, sample_number, experiment_group, eval_score, completion)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO results (candidate_id, challenge_id, sample_number, experiment_group, eval_score, completion, act_name)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        (candidate_id, challenge_id, sample_number, experiment_group, None, completion),
+        (
+            candidate_id,
+            challenge_id,
+            sample_number,
+            experiment_group,
+            None,
+            completion,
+            act_name,
+        ),
     )
 
 

@@ -37,10 +37,11 @@ if __name__ == "__main__":
             sample_number INTEGER,
             experiment_group TEXT,
             eval_score FLOAT,
+            act_name INTEGER,
             completion TEXT,
             FOREIGN KEY (candidate_id) REFERENCES candidates (id),
             FOREIGN KEY (challenge_id) REFERENCES challenges (id),
-            UNIQUE (candidate_id, challenge_id, sample_number, experiment_group)
+            UNIQUE (candidate_id, challenge_id, sample_number, experiment_group, act_name)
         )
     """
     )
