@@ -147,6 +147,3 @@ images
 *png
 *html
 scripts/KL_bug.py
-
-# Mechanical generation
-mechanical_generation/*.db
