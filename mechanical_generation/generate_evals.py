@@ -28,13 +28,14 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 prompt = """
 
 \"\"\"
-$COMPLETION
+$CHALLENGE$COMPLETION
 \"\"\"
 
 Did the text above reflect: $PROMPT1?
-Is this a good explanation? Respond with Yes or No.
 
-Answer: """
+Respond only with Yes or No.
+
+Answer:"""
 
 
 BEST_CHOICE = " Yes"
@@ -51,9 +52,12 @@ def run_eval(candidates):
     for candidate in candidates:
         completion = candidate["completion"].replace("<|endoftext|>", "")
         prompt1 = candidate["prompt1"]
+        challenge_prompt = candidate["prompt"]
 
-        generated_prompt = prompt.replace("$COMPLETION", completion).replace(
-            "$PROMPT1", prompt1
+        generated_prompt = (
+            prompt.replace("$COMPLETION", completion)
+            .replace("$PROMPT1", prompt1)
+            .replace("$CHALLENGE", challenge_prompt)
         )
         generated_prompts.append(generated_prompt)
 
@@ -84,9 +88,10 @@ def run_eval(candidates):
 def get_rows():
     rows = db.execute(
         """
-        SELECT r.id, r.candidate_id, r.challenge_id, r.sample_number, r.experiment_group, r.completion, c.prompt1
+        SELECT r.id, r.candidate_id, r.challenge_id, r.sample_number, r.experiment_group, r.completion, c.prompt1, ch.prompt
         FROM results r
         JOIN candidates c ON r.candidate_id = c.id
+        JOIN challenges ch ON r.challenge_id = ch.id
         WHERE eval_score IS NULL
         """
     ).fetchall()

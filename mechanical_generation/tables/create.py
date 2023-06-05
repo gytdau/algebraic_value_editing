@@ -52,4 +52,3 @@ if __name__ == "__main__":
     # Create the rest of the tables
     import create_challenges
     import create_candidates
-
