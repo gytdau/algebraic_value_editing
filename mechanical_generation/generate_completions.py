@@ -40,7 +40,7 @@ _ = model.to("cuda")
 
 # %%
 
-cached_control = None
+cached_control = {}
 act_names = [4, 10, 16]
 
 
@@ -142,8 +142,10 @@ def generate_completions(model, activation_additions, prompts):
         top_p=0.3,
     ).completions
 
+    prompts_tuple = tuple(prompts)
+
     # Use cached control if available
-    if cached_control is None:
+    if prompts_tuple not in cached_control:
         control = gen_using_hooks(
             prompt_batch=prompts,
             model=model,
@@ -154,10 +156,10 @@ def generate_completions(model, activation_additions, prompts):
             top_p=0.3,
         ).completions
 
-        cached_control = control
+        cached_control[prompts_tuple] = control
         print("Regenerated control.")
     else:
-        control = cached_control
+        control = cached_control[prompts_tuple]
 
     completions = [steered, control]
 
@@ -200,7 +202,7 @@ existing_results = retrieve_existing_results(cursor)
 candidates = cursor.execute("SELECT * FROM candidates").fetchall()
 challenges = cursor.execute("SELECT * FROM challenges").fetchall()
 
-for candidate in candidates:
+for candidate in tqdm(candidates, desc="Processing candidates"):
     generate_completions_for_candidate(
         candidate, challenges, existing_results, cursor, conn, model
     )
