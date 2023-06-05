@@ -4,7 +4,7 @@
 import sqlite3
 
 from typing import List
-
+from tqdm.notebook import tqdm
 import torch
 from transformer_lens.HookedTransformer import HookedTransformer
 
@@ -70,22 +70,15 @@ def generate_completions_for_candidate(
         f"Generating completions for candidate {candidate[0]} - {prompt1} vs {prompt2}"
     )
 
-    for act_name in act_names:
+    for act_name in tqdm(act_names, desc="Processing act_names"):
         activation_additions = get_activation_additions(
             prompt1, prompt2, model, act_name
         )
 
-        for challenge in challenges:
+        for challenge in tqdm(challenges, desc="Processing challenges"):
             try:
                 candidate_id = candidate[0]
                 challenge_id = challenge[0]
-
-                # if (candidate_id, challenge_id) in existing_results:
-                #     print(
-                #         f"Skipping generation for candidate {candidate_id} and challenge {challenge_id} (already in database)"
-                #     )
-                #     continue
-                print(f"Challenge {challenge_id}")
 
                 challenge_prompt = challenge[1]
                 prompts = [challenge_prompt] * 3
