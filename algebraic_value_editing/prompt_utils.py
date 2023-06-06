@@ -71,9 +71,7 @@ class ActivationAddition:
     def __repr__(self) -> str:
         if hasattr(self, "prompt"):
             return f"ActivationAddition({self.prompt}, {self.coeff}, {self.act_name})"
-        return (
-            f"ActivationAddition({self.tokens}, {self.coeff}, {self.act_name})"
-        )
+        return f"ActivationAddition({self.tokens}, {self.coeff}, {self.act_name})"
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, ActivationAddition):
@@ -87,9 +85,7 @@ class ActivationAddition:
             else torch.equal(self.tokens, other.tokens)
         )
         return (
-            prompt_eq
-            and self.coeff == other.coeff
-            and self.act_name == other.act_name
+            prompt_eq and self.coeff == other.coeff and self.act_name == other.act_name
         )
 
 
@@ -101,6 +97,7 @@ def get_x_vector(
     model: Optional[HookedTransformer] = None,
     pad_method: Optional[str] = None,
     custom_pad_id: Optional[int] = None,
+    padding_offset: int = 0,
 ) -> Tuple[ActivationAddition, ActivationAddition]:
     """Take in two prompts and a coefficient and an activation name, and
     return two activation additions spaced according to `pad_method`.
@@ -147,9 +144,7 @@ def get_x_vector(
         pad_token_id: int = custom_pad_id or model.tokenizer.pad_token_id
 
         # Tokenize the prompts
-        tokens1, tokens2 = [
-            model.to_tokens(prompt)[0] for prompt in [prompt1, prompt2]
-        ]
+        tokens1, tokens2 = [model.to_tokens(prompt)[0] for prompt in [prompt1, prompt2]]
         max_token_len: int = max(tokens1.shape[-1], tokens2.shape[-1])
 
         # Pad the shorter token sequence
@@ -162,6 +157,10 @@ def get_x_vector(
 
         padded_tokens1, padded_tokens2 = map(pad_partial, [tokens1, tokens2])
 
+        # Apply the offset
+
+        padded_tokens1 = padded_tokens1[..., padding_offset:]
+
         end_point = ActivationAddition(
             tokens=padded_tokens1, coeff=coeff, act_name=act_name
         )
@@ -170,9 +169,7 @@ def get_x_vector(
         )
         return end_point, start_point
 
-    end_point = ActivationAddition(
-        prompt=prompt1, coeff=coeff, act_name=act_name
-    )
+    end_point = ActivationAddition(prompt=prompt1, coeff=coeff, act_name=act_name)
     start_point = ActivationAddition(
         prompt=prompt2, coeff=-1 * coeff, act_name=act_name
     )
