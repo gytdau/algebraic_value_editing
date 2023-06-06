@@ -16,8 +16,9 @@ df = pd.read_sql_query(
     conn,
 )
 
-# Join candidates_df and results_df on 'id' field of candidates
-joined_df = df
+# Apply exp to eval_score
+joined_df = df.copy()
+df["eval_score"] = np.exp(df["eval_score"])
 # %%
 
 # Sensitivity analysis on challenges
@@ -71,10 +72,16 @@ pivot_table = pivot_table.reindex(
     pivot_table.sum().sort_values(ascending=False).index, axis=1
 )
 
-styled_table = pivot_table.style.background_gradient(
-    cmap="RdBu", vmin=-100, vmax=100
-).format("{:.2f}")
+pivot_table.rename_axis(None, axis=1, inplace=True)
+pivot_table.rename_axis("layer", axis=0, inplace=True)
 
+bg_gradient = {
+    "cmap": "RdBu",
+    "vmin": -1,
+    "vmax": 1,
+}
+
+styled_table = pivot_table.style.background_gradient(**bg_gradient).format("{:.2f}")
 display(styled_table)
 
 # %%
@@ -114,67 +121,65 @@ pivot_table = pivot_table.reindex(
 
 # Apply a color gradient based on cell value
 # Set the center point to zero
-styled_table = pivot_table.style.background_gradient(
-    cmap="RdBu", vmin=-100, vmax=100
-).format("{:.2f}")
+styled_table = pivot_table.style.background_gradient(**bg_gradient).format("{:.2f}")
 
 # Display the styled table
 styled_table
 
 
 # %%
-# Show the pivot table for each act_name
 
-for act_name in [4, 10, 16]:
-    df = joined_df[joined_df["act_name"] == act_name]
+# Set candidate_name to (candidate_prompt, act_name)
 
-    df = df.reset_index(drop=True)
+df["candidate_name"] = (
+    df["candidate_prompt"] + " (Layer " + df["act_name"].astype(str) + ")"
+)
 
-    steered = df[df["experiment_group"] == "steered"]
-    control = df[df["experiment_group"] == "control"]
+df = df.reset_index(drop=True)
 
-    steered_pivot_table = pd.pivot_table(
-        steered,
-        values="eval_score",
-        index=["challenge_prompt"],
-        columns=["candidate_prompt"],
-        aggfunc=np.mean,
+steered = df[df["experiment_group"] == "steered"]
+control = df[df["experiment_group"] == "control"]
+
+steered_pivot_table = pd.pivot_table(
+    steered,
+    values="eval_score",
+    index=["challenge_prompt"],
+    columns=["candidate_name"],
+    aggfunc=np.mean,
+)
+
+control_pivot_table = pd.pivot_table(
+    control,
+    values="eval_score",
+    index=["challenge_prompt"],
+    columns=["candidate_name"],
+    aggfunc=np.mean,
+)
+
+pivot_table = steered_pivot_table - control_pivot_table
+
+pivot_table = pivot_table.reindex(
+    pivot_table.sum().sort_values(ascending=False).index, axis=1
+)
+
+# Add a sum row
+pivot_table.loc["sum"] = pivot_table.sum()
+
+# Bold the sum row
+styled_table = (
+    pivot_table.style.background_gradient(**bg_gradient, subset=pd.IndexSlice[:, :])
+    .format("{:.2f}")
+    .applymap(
+        lambda x: "font-weight: bold; font-size: 16px",
+        subset=pd.IndexSlice["sum", :],
     )
+)
 
-    control_pivot_table = pd.pivot_table(
-        control,
-        values="eval_score",
-        index=["challenge_prompt"],
-        columns=["candidate_prompt"],
-        aggfunc=np.mean,
-    )
+# styled_table = pivot_table.style.background_gradient(
+#     cmap="RdBu", vmin=-100, vmax=100
+# ).format("{:.2f}")
 
-    pivot_table = steered_pivot_table - control_pivot_table
-
-    pivot_table = pivot_table.reindex(
-        pivot_table.sum().sort_values(ascending=False).index, axis=1
-    )
-
-    # Add a sum row
-    pivot_table.loc["sum"] = pivot_table.sum()
-
-    # Bold the sum row
-    styled_table = (
-        pivot_table.style.background_gradient(
-            cmap="RdBu", vmin=-100, vmax=100, subset=pd.IndexSlice[:, :]
-        )
-        .format("{:.2f}")
-        .applymap(
-            lambda x: "font-weight: bold; font-size: 16px",
-            subset=pd.IndexSlice["sum", :],
-        )
-    )
-
-    # styled_table = pivot_table.style.background_gradient(
-    #     cmap="RdBu", vmin=-100, vmax=100
-    # ).format("{:.2f}")
-
-    display(styled_table)
+display(styled_table)
 
 # %%
 
@@ -182,8 +187,8 @@ for act_name in [4, 10, 16]:
 steered_best_completion_per_challenge = (
     joined_df[
         (joined_df["experiment_group"] == "steered")
-        & (joined_df["candidate_prompt"] == "Ready to Obey")
-        & (joined_df["act_name"] == 16)
+        & (joined_df["candidate_prompt"] == "Command Accepted")
+        & (joined_df["act_name"] == 10)
     ]
     .groupby("challenge_prompt")
     .apply(lambda x: x.loc[x.eval_score.idxmax()])
@@ -198,15 +203,14 @@ control_best_completion_per_challenge = (
 # Show side by side
 best_completion_per_challenge = pd.concat(
     [
-        steered_best_completion_per_challenge[["completion", "eval_score"]].rename(
-            columns={"completion": "steered", "eval_score": "steered_score"}
+        steered_best_completion_per_challenge[["completion"]].rename(
+            columns={"completion": "steered"}
         ),
-        control_best_completion_per_challenge[["completion", "eval_score"]].rename(
-            columns={"completion": "control", "eval_score": "control_score"}
+        control_best_completion_per_challenge[["completion"]].rename(
+            columns={"completion": "control"}
         ),
     ],
     axis=1,
-    keys=["steered", "control"],
 )
 
 
@@ -217,15 +221,10 @@ display(
         lambda x: ["background-color: #DDEBF7"] * len(x),
         subset=pd.IndexSlice[:, ["steered"]],
     )
-    # add some space between the two groups
-    .set_table_styles(
-        [
-            dict(selector="th.col_level0", props=[("padding", "4em")]),
-            dict(selector="th.col_level1", props=[("padding", "4em")]),
-        ]
+    # Bold the challenge_prompt
+    .set_properties(**{"text-align": "left"}).set_caption(
+        "Best completion per challenge"
     )
-    .set_properties(**{"text-align": "left"})
-    .set_caption("Best completion per challenge")
 )
 
 
