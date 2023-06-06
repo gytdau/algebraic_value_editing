@@ -46,6 +46,16 @@ if __name__ == "__main__":
     """
     )
 
+    cursor.execute(
+        """
+        CREATE VIEW simplified_results AS
+SELECT s.id, s.candidate_id, s.challenge_id, s.sample_number, chall.prompt AS challenge_prompt, s.experiment_group,s.completion,   cand.prompt1 AS candidate_prompt, s.eval_score, s.act_name
+FROM results AS s
+INNER JOIN candidates AS cand ON s.candidate_id = cand.id
+INNER JOIN challenges AS chall ON s.challenge_id = chall.id
+    """
+    )
+
     # Commit the changes and close the connection
     conn.commit()
     conn.close()
