@@ -162,8 +162,12 @@ pivot_table = pivot_table.reindex(
     pivot_table.sum().sort_values(ascending=False).index, axis=1
 )
 
+
 # Add a sum row
 pivot_table.loc["sum"] = pivot_table.sum()
+
+# Bottom 5 by sum
+pivot_table = pivot_table[pivot_table.sum().sort_values(ascending=False).index[-5:]]
 
 # Bold the sum row
 styled_table = (
