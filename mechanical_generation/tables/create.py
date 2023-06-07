@@ -1,5 +1,5 @@
 import sqlite3
-import collections
+import os
 
 if __name__ == "__main__":
     # Connect to the database (creates a new database if it doesn't exist)
@@ -56,10 +56,13 @@ INNER JOIN challenges AS chall ON s.challenge_id = chall.id
     """
     )
 
+    data_files = ["candidates.sql", "challenges.sql"]
+
+    for data_file in data_files:
+        with open(os.path.join(os.path.dirname(__file__), data_file), "r") as f:
+            data = f.read()
+            cursor.executescript(data)
+
     # Commit the changes and close the connection
     conn.commit()
     conn.close()
-
-    # Create the rest of the tables
-    import create_challenges
-    import create_candidates
