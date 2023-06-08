@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
 # Connect to the sqlite database
-conn = sqlite3.connect("../steering_vectors.db")
+conn = sqlite3.connect("../main.db")
 
 # Load candidates and results table into pandas DataFrames
 df = pd.read_sql_query(
@@ -167,7 +167,7 @@ pivot_table = pivot_table.reindex(
 pivot_table.loc["sum"] = pivot_table.sum()
 
 # Bottom 5 by sum
-pivot_table = pivot_table[pivot_table.sum().sort_values(ascending=False).index[-5:]]
+pivot_table = pivot_table[pivot_table.sum().sort_values(ascending=False).index[:5]]
 
 # Bold the sum row
 styled_table = (

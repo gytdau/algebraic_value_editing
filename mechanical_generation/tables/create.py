@@ -3,7 +3,7 @@ import os
 
 if __name__ == "__main__":
     # Connect to the database (creates a new database if it doesn't exist)
-    conn = sqlite3.connect("steering_vectors.db")
+    conn = sqlite3.connect("main.db")
     cursor = conn.cursor()
 
     # Create the candidates table
