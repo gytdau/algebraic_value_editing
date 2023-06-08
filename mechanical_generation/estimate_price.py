@@ -6,15 +6,15 @@ conn = sqlite3.connect("steering_vectors.db")
 
 candidates = conn.execute("SELECT * FROM candidates").fetchall()
 challenges = conn.execute("SELECT * FROM challenges").fetchall()
-layer_count = 24
-sample_count = 5
+layer_count = 12
+sample_count = 3
 
 print("Candidates:", len(candidates))
 print("Challenges:", len(challenges))
 
 print(f"--- Generation Time ---")
 
-total_variants = len(candidates) * len(challenges) * sample_count * layer_count
+total_variants = len(candidates) * len(challenges) * layer_count
 print(f"Total variants: {total_variants}")
 
 time_per_variant = 5.2  # changes! measure this
