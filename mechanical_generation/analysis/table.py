@@ -18,7 +18,7 @@ df = pd.read_sql_query(
 
 # Apply exp to eval_score
 joined_df = df.copy()
-df["eval_score"] = np.exp(df["eval_score"])
+# df["eval_score"] = np.exp(df["eval_score"])
 # %%
 
 # Sensitivity analysis on challenges
@@ -191,7 +191,7 @@ display(styled_table)
 steered_best_completion_per_challenge = (
     joined_df[
         (joined_df["experiment_group"] == "steered")
-        & (joined_df["candidate_prompt"] == "Command Accepted")
+        & (joined_df["candidate_prompt"] == "worried")
         & (joined_df["act_name"] == 10)
     ]
     .groupby("challenge_prompt")
