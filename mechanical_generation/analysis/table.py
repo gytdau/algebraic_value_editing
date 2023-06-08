@@ -18,7 +18,7 @@ df = pd.read_sql_query(
 
 # Apply exp to eval_score
 joined_df = df.copy()
-df["eval_score"] = np.exp(df["eval_score"])
+# df["eval_score"] = np.exp(df["eval_score"])
 # %%
 
 # Sensitivity analysis on challenges
@@ -167,7 +167,7 @@ pivot_table = pivot_table.reindex(
 pivot_table.loc["sum"] = pivot_table.sum()
 
 # Bottom 5 by sum
-pivot_table = pivot_table[pivot_table.sum().sort_values(ascending=False).index[-5:]]
+pivot_table = pivot_table[pivot_table.sum().sort_values(ascending=False).index[5:]]
 
 # Bold the sum row
 styled_table = (
@@ -191,7 +191,7 @@ display(styled_table)
 steered_best_completion_per_challenge = (
     joined_df[
         (joined_df["experiment_group"] == "steered")
-        & (joined_df["candidate_prompt"] == "Command Accepted")
+        & (joined_df["candidate_prompt"] == "worried")
         & (joined_df["act_name"] == 10)
     ]
     .groupby("challenge_prompt")
