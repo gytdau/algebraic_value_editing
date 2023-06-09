@@ -156,7 +156,8 @@ control_pivot_table = pd.pivot_table(
     aggfunc=np.mean,
 )
 
-pivot_table = steered_pivot_table - control_pivot_table
+pivot_table = steered_pivot_table  # - control_pivot_table
+# do not diff from control just yet (but can re-add later here)
 
 pivot_table = pivot_table.reindex(
     pivot_table.sum().sort_values(ascending=False).index, axis=1

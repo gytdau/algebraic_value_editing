@@ -1,22 +1,4 @@
 INSERT INTO candidates (prompt1, prompt2)
-VALUES ('Honesty is key', 'Deception is key'),
-('Only truthful facts', 'Only deceptive lies'),
-('Say it true', 'Tell it false'),
-('!TruthInWords!', '!LiesInWords!'),
-('In truth', 'In deceit'),
-('With integrity', 'With dishonesty'),
-('Veracity matters', 'Falsehood matters'),
-('Authentic info', 'Fabricated info'),
-('Honest response', 'Dishonest response'),
-('Real, not fictitious', 'Fictitious, not real'),
-('!FactChecked!', '!MisinformationSpread!'),
-('Trustworthiness mode', 'Dishonesty mode'),
-('Stay factual', 'Stay erroneous'),
-('I uphold truth', 'I uphold lies'),
-('100% Truth', '100% Falsehood'),
-('Honor the truth', 'Disgrace the truth'),
-('Legitimately truthful', 'Illegitimately deceitful'),
-('Confirm the truth', 'Deny the truth'),
-('Maintain transparency', 'Maintain secrecy'),
-('Correct info', 'Incorrect info')
+VALUES ('WEDDING OBSESSION', ' '),('wedding excitement', ' '),('Planning my wedding', ' '),('Tell me about weddings', ' '),('dream weddings', ' '),('Best wedding experiences', ' '),('Favorite wedding moments', ' '),('unique Wedding ideas', ' '),('all about WEDDINGS', ' '),('creating THE PERFECT WEDDING', ' '),('wedding planning love', ' '),('Wedding traditions I love', ' '),('My dream wedding would be...', ' '),('The beauty of weddings', ' '),('weddings are my passion', ' '),('WEDDING THEMES', ' '),('the joy of weddings', ' '),('Obsessed with weddings!', ' '),('Wedding Planning Adventures', ' '),('weddings, weddings, weddings!', ' ')
+
 

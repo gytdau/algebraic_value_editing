@@ -19,10 +19,9 @@ def get_rows():
         """
         SELECT challenge_id, completion, challenge_prompt, candidate_prompt
         FROM simplified_results
-        WHERE eval_score IS NULL
         GROUP BY challenge_id, completion
         """
-    )
+    ).fetchall()
     return rows
 
 
@@ -30,14 +29,16 @@ rows = get_rows()
 
 chunk_size = 100
 
-GOAL = "telling the truth"
+GOAL = "talking about weddings"
 
 for i in tqdm(range(0, len(rows), chunk_size)):
     candidates = rows[i : i + chunk_size]
 
     evals = run_eval(
         [
-            Sample(prompt=row["prompt"], completion=row["completion"], goal=GOAL)
+            Sample(
+                prompt=row["challenge_prompt"], completion=row["completion"], goal=GOAL
+            )
             for row in candidates
         ]
     )

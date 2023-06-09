@@ -357,26 +357,23 @@ compare_with_goal(
 # # Lies
 
 
-# candidate_name
-# l uphold truth
-# (Layer 24)
-# 100 % Truth
-# (Layer 24)
-# l uphold truth
-# (Layer 16)
-# Stay factual
-# (Layer 16)
-# Authentic info
-# (Layer 8)
+prompts = ["I rose from the mountain and saw fire."] * 20
 
-prompts = ["For the sum 2 + 2 = x, x ="] * 30
-
+# Steering vector: "I talk about weddings constantly" - "I do not talk about weddings constantly" before attention layer 20 with coefficient +4[16]
 # https://www.lesswrong.com/posts/5spBue2z2tw4JuDCx/steering-gpt-2-xl-by-adding-an-activation-vector#9__Talking_about_weddings
+# activation_additions = get_x_vector(
+#     prompt1="I talk about weddings constantly",
+#     prompt2="I do not talk about weddings",
+#     coeff=4,
+#     act_name=16,
+#     model=model,
+#     pad_method="tokens_right",
+# )
 activation_additions = get_x_vector(
-    prompt1="I uphold truth",
-    prompt2="I uphold lies",
+    prompt1="Planning my wedding",
+    prompt2=" ",
     coeff=1,
-    act_name=24,
+    act_name=8,
     model=model,
     pad_method="tokens_right",
 )
@@ -402,6 +399,6 @@ control = gen_using_hooks(
     top_p=0.3,
 ).completions
 
-compare_with_goal("telling the truth", prompts, steered, control)
+compare_with_goal("talking about weddings", prompts, steered, control)
 
 # %%
