@@ -45,6 +45,10 @@ def get_eval_scores(goal, prompts, steered, control):
 
 
 def compare_with_goal(goal, prompts, steered, control):
+    assert (
+        len(prompts) == len(steered) == len(control)
+    ), "All lists must be the same length"
+
     steered_evals, control_evals = get_eval_scores(goal, prompts, steered, control)
     df = pd.DataFrame({"Steered": steered_evals, "Control": control_evals})
 
