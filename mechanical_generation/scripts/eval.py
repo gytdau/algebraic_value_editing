@@ -272,8 +272,16 @@ for prompt in prompts:
 
 # %%
 
-compare_with_goal("talking about weddings", prompts, steered, control)
-compare_with_goal("talking about weddings constantly", prompts, steered, control)
-compare_with_goal("wedding obsession", prompts, steered, control)
+reformatted_prompts = []
+for prompt in prompts:
+    reformatted_prompts += [prompt] * 3
+
+entire_prompt = [a + b for a, b in zip(reformatted_prompts, steered)]
+
+compare_with_goal("talking about weddings", reformatted_prompts, steered, control)
+compare_with_goal(
+    "talking about weddings constantly", reformatted_prompts, steered, control
+)
+compare_with_goal("wedding obsession", reformatted_prompts, steered, control)
 
 # %%
