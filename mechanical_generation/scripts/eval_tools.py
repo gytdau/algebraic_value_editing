@@ -8,7 +8,11 @@ from typing import List, Dict
 from dotenv import load_dotenv
 
 
-load_dotenv("../.env")
+import os
+
+load_dotenv(".env")
+
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 BEST_CHOICE = " Yes"

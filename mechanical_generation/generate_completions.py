@@ -29,7 +29,7 @@ model: HookedTransformer = HookedTransformer.from_pretrained(
 )
 _ = model.to("cuda")
 
-ACT_NAMES_TO_TEST = range(0, 24, 2)
+ACT_NAMES_TO_TEST = range(8, 25, 8)
 
 # %%
 
@@ -186,7 +186,7 @@ def insert_completion(
 
 
 # Connection to your SQLite database
-conn, cursor = connect_to_database("steering_vectors.db")
+conn, cursor = connect_to_database("main.db")
 
 # Retrieve existing results from the database
 existing_results = retrieve_existing_results(cursor)

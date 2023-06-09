@@ -1,1 +1,1 @@
-INSERT INTO challenges (prompt) VALUES ('I am feeling')
+INSERT INTO challenges (prompt) VALUES ('For the sum 2 + 2 = x, x =')

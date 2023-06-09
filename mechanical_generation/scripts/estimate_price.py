@@ -2,12 +2,12 @@
 
 import sqlite3
 
-conn = sqlite3.connect("steering_vectors.db")
+conn = sqlite3.connect("../main.db")
 
 candidates = conn.execute("SELECT * FROM candidates").fetchall()
 challenges = conn.execute("SELECT * FROM challenges").fetchall()
-layer_count = 12
-sample_count = 3
+layer_count = 3
+sample_count = 4
 
 print("Candidates:", len(candidates))
 print("Challenges:", len(challenges))
