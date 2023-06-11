@@ -84,6 +84,51 @@ control = gen_using_hooks(
     top_p=0.3,
 ).completions
 
+activation_additions_new = get_x_vector(
+    prompt1="Planning my wedding",
+    prompt2=" ",
+    coeff=1,
+    act_name=8,
+    model=model,
+    pad_method="tokens_right",
+)
+
+
+steered_new = gen_using_activation_additions(
+    prompt_batch=prompts,
+    model=model,
+    activation_additions=activation_additions_new,
+    seed=0,
+    temperature=1,
+    freq_penalty=1,
+    top_p=0.3,
+).completions
+
+
+# %%
+
+# print markdown table
+markdown_table = """
+| Steered | New Steered | Control |
+| --- | --- | --- |"""
+
+
+def format_print(prompt, completion):
+    completion = completion.replace("\n", " ")
+    return f"**{prompt}** {completion}"
+
+
+for prompt, steered, steered_new, control in zip(
+    prompts, steered, steered_new, control
+):
+    markdown_table += "\n|{}|{}|{}|".format(
+        format_print(prompt, steered),
+        format_print(prompt, steered_new),
+        format_print(prompt, control),
+    )
+
+with open("temp.txt", "w") as f:
+    f.write(markdown_table)
 
 # %%
 

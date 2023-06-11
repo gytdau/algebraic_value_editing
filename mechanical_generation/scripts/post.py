@@ -169,50 +169,92 @@ fig.show()
 
 
 # %%[markdown]
-# ## A simple vector that just says "weddings"
+# # Weddings in general
 
-analyze_activation_vector(
-    get_x_vector(
-        prompt1=" weddings",
-        prompt2=" ",
-        coeff=1,
-        act_name=8,
-        model=model,
-        pad_method="tokens_right",
-    ),
-    goal="talking about weddings",
-)
+# %%
+import sqlite3
 
-# %%[markdown]
-# ## Not-liking-her vector
+# %%
+
+db = sqlite3.connect("../main.db")
+
+db.row_factory = sqlite3.Row
+
+cursor = db.cursor()
+
+def get_rows():
+    rows = cursor.execute(
+        """
+        SELECT candidate_prompt, eval_score, act_name
+        FROM simplified_results
+        WHERE experiment_group = 'steered'
+        """
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+rows = get_rows()
+
+# Group these by prompt
+
+grouped = pd.DataFrame(rows).groupby("candidate_prompt")
+
+# Show a similar visualisation
+fig = go.Figure()
+# fig.add_vline(x=0, line_width=1)
+# fig.add_vline(x=1, line_width=1)
+# Calculate group means and sort from highest to lowest
+group_means = grouped["eval_score"].mean().sort_values(ascending=True)
+
+colors = {
+    8: "rgba(255, 127, 127, 0.5)",
+    16: "rgba(0, 119, 190, 0.7)",
+    24: "rgba(150, 123, 182, 0.6)",
+}
+
+# Use ordered group names to add traces
+for name in group_means.index:
+    group = grouped.get_group(name)
+    # further group by act_name
+    act_grouped = group.groupby("act_name")
+    for act_name, act_group in act_grouped:
+        fig.add_trace(
+            go.Box(
+                y=[name] * len(act_group),
+                x=act_group["eval_score"],
+                name=name,
+                boxpoints="all",
+                line=dict(width=0),
+                fillcolor="rgba(0,100,80,0)",
+                pointpos=0,
+                jitter=1,
+                marker_color=colors[act_name],
+                # bigger marker
+                marker=dict(size=10),
+                showlegend=False,
+            )
+        )
+
+for act_name, color in colors.items():
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode='markers',
+            marker=dict(size=10, color=color),
+            showlegend=True,
+            name=f"Layer {act_name}"
+        )
+    )
+
+fig.update_traces(orientation="h")
+fig.update_layout(template="plotly_white")
+fig.update_xaxes(title="How often did the model 'talk about weddings'?", showline=True, linewidth=1, linecolor='black', range=[-0.05, 1.05], mirror=False)  # add more details to x-axis
+fig.update_yaxes(showline=False, linewidth=2, linecolor='black', mirror=True)  # add more details to y-axis
+fig.update_layout(showlegend=True, height=1200, width=700, legend=dict(orientation="h", yanchor="bottom", y=1, xanchor="left", x=0))  # remove legend and set siz
+fig.update_layout(title_text='Some steering vectors work better than others', title_x=0.5)  # add centered title
+
+fig.show()
 
 
-analyze_activation_vector(
-    get_x_vector(
-        prompt1="I don't like her",
-        prompt2="",
-        coeff=1,
-        act_name=8,
-        model=model,
-        pad_method="tokens_right",
-    ),
-    goal="someone disliking the other person",
-)
-
-# %%[markdown]
-# ## Not-liking-her vector
-
-
-analyze_activation_vector(
-    get_x_vector(
-        prompt1="Let's get lunch",
-        prompt2="",
-        coeff=1,
-        act_name=8,
-        model=model,
-        pad_method="tokens_right",
-    ),
-    goal="someone disliking the other person",
-)
 
 # %%
