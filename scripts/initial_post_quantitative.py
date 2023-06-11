@@ -342,7 +342,7 @@ texts_df = pd.concat(texts).reset_index(drop=True)
 
 # %%
 # Perform layers-dense experiment and show results
-USE_CACHE = True
+USE_CACHE = False
 CACHE_FN = "weddings_essays_layers_cache.pkl"
 if USE_CACHE:
     with open(CACHE_FN, "rb") as file:

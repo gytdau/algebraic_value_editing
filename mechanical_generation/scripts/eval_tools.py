@@ -6,9 +6,14 @@ import openai
 from dataclasses import dataclass
 from typing import List, Dict
 from dotenv import load_dotenv
+import plotly.graph_objects as go
+from plotly.colors import n_colors
+import numpy as np
 
 
 import os
+
+from algebraic_value_editing.prompt_utils import ActivationAddition
 
 load_dotenv(".env")
 
@@ -23,6 +28,14 @@ class Sample:
     prompt: str
     completion: str
     goal: str
+    eval_score: float
+
+
+@dataclass
+class SteeringVector:
+    name: str
+    activation_additions: List[ActivationAddition]
+    completions: List[str]
 
 
 def generate_prompt(sample: Sample) -> str:
@@ -59,6 +72,41 @@ def run_eval(samples: List[Sample]) -> List[float]:
     )
     responses = response["choices"]
     return calculate_score(responses)
+
+
+def update_eval(samples: List[Sample]) -> None:
+    """Evaluates samples and returns scores."""
+    scores = run_eval(samples)
+    for sample, score in zip(samples, scores):
+        sample.eval_score = score
+
+
+def compare_vectors_with_goal(
+    goal: str, prompts: List[str], vectors: List[SteeringVector]
+) -> None:
+    """Compares steering vectors samples with the given goal and shows a plot."""
+
+    samples = [
+        [
+            Sample(prompt=prompt, completion=completion, goal=goal, eval_score=None)
+            for prompt, completion in zip(prompts, steering_vector.completions)
+        ]
+        for steering_vector in vectors
+    ]
+
+    for vector, sample in zip(vectors, samples):
+        update_eval(sample)
+
+    return (vectors, samples)
+    # fig = px.box(
+    #     df,
+    #     y=[vector.name for vector in vectors],
+    #     points="all",
+    #     title=goal,
+    #     range_y=[0, 1],
+    #     labels={"variable": "Group", "value": "Probability of Yes"},
+    # )
+    # fig.show()
 
 
 def compare_with_goal(

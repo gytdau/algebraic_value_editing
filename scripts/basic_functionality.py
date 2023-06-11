@@ -25,17 +25,17 @@ _ = model.to("cuda")
 # %%
 activation_additions: List[ActivationAddition] = [
     *get_x_vector(
-        prompt1="Love",
-        prompt2="Hate",
-        coeff=3,
-        act_name=6,
+        prompt1="Command Accepted",
+        prompt2="Command Rejected",
+        coeff=5,
+        act_name=11,
         model=model,
         pad_method="tokens_right",
     ),
 ]
 
 completion_utils.print_n_comparisons(
-    prompt="I hate you because you're",
+    prompt="Some simple maths problems",
     num_comparisons=10,
     model=model,
     activation_additions=activation_additions,
