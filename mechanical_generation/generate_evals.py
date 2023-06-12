@@ -29,7 +29,7 @@ rows = get_rows()
 
 chunk_size = 100
 
-GOAL = "talking about weddings"
+GOAL = "mentioning weddings or talking about them"
 
 for i in tqdm(range(0, len(rows), chunk_size)):
     candidates = rows[i : i + chunk_size]
@@ -37,7 +37,10 @@ for i in tqdm(range(0, len(rows), chunk_size)):
     evals = run_eval(
         [
             Sample(
-                prompt=row["challenge_prompt"], completion=row["completion"], goal=GOAL
+                prompt=row["challenge_prompt"],
+                completion=row["completion"],
+                goal=GOAL,
+                eval_score=None,
             )
             for row in candidates
         ]

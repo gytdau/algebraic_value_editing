@@ -113,7 +113,7 @@ def get_activation_additions(prompt1, prompt2, model, act_name):
     return get_x_vector(
         prompt1=prompt1,
         prompt2=prompt2,
-        coeff=1,
+        coeff=4,
         act_name=act_name,
         model=model,
         pad_method="tokens_right",
