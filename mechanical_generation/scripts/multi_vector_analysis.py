@@ -44,9 +44,7 @@ from IPython.display import display
 
 
 def analyze_activation_vector(vectors, goal):
-    prompts = [
-        "Science is the great antidote to the poison of enthusiasm and superstition."
-    ] * 20
+    prompts = ["The morphology, evolution, and classification of plants,"] * 10
 
     for vector in vectors:
         if vector.activation_additions is None:
@@ -200,13 +198,20 @@ def format_print(prompt, completion):
     return f"**{prompt}** {completion}"
 
 
-print("|Completion|Prompt|")
+print("|Combined|I talk about weddings constantly|")
 print("|---|---|")
-for prompt, steered in zip(
+for prompt, steered, steered_2 in zip(
     ["Science is the great antidote to the poison of enthusiasm and superstition."]
     * 20,
     samples[0],
+    samples[1],
 ):
-    print("|" + format_print(prompt, steered.completion) + "|" + prompt + "|")
+    print(
+        "|"
+        + format_print(prompt, steered.completion)
+        + "|"
+        + format_print(prompt, steered_2.completion)
+        + "|"
+    )
 
 # %%
