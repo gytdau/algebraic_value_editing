@@ -52,7 +52,7 @@ x_values = [0, 1]
 
 # Generate random data for scatter plots
 np.random.seed(42)
-data = np.random.rand(4)
+dataset = [np.random.rand(4) for _ in range(9)]
 
 # Create the figure and subplots
 fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(12, 9))
@@ -60,28 +60,36 @@ fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(12, 9))
 # Iterate over each question and subplot
 for i, ax_row in enumerate(axes):
     for j, ax in enumerate(ax_row):
+        data = dataset[i * 3 + j]
         # Scatter plot
-        ax.scatter(data, categories, color="b", s=100)
+        ax.scatter(data, np.arange(1, 5), color="b", s=100)  # Modified y-axis limits
         ax.set_xlim([0, 1])
-        ax.set_ylim([0, 1])
+        ax.set_ylim([0.5, 4.5])  # Modified y-axis limits
+        ax.grid(axis="y", linestyle="--", alpha=0.2)
+        ax.tick_params(axis="y", length=0)
 
         # Remove tick labels on y-axis
         ax.set_yticklabels([])
-        ax.set_ylim(-0.5, len(categories) - 0.5)
 
         # Set category labels
         if j == 0:
             ax.set_yticks(np.arange(1, 5))
             ax.set_yticklabels(categories)
             ax.tick_params(
-                axis="y", pad=50
+                axis="y", pad=10
             )  # Adjust the padding between labels and plot
 
         # Set subplot title (question heading)
-        ax.set_title(f"Question {i * 3 + j + 1}")
+        ax.set_title(f"Question {i * 3 + j + 1}", loc="left")
+
+        # Remove the box around each subplot
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
+        ax.spines["left"].set_visible(False)
 
 # Adjust spacing between subplots
-plt.subplots_adjust(wspace=0.3, hspace=0.5)
+plt.subplots_adjust(wspace=0.3, hspace=1)
 
 # Show the plot
 plt.show()
