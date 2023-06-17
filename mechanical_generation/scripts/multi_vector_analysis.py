@@ -46,15 +46,19 @@ sentences = [
     "In virtual reality, we often forget that",
     "Understanding quantum physics relies on the premise that",
     "Climate change is a present danger because",
-    "Language serves as",
     "The debate about social media centers on",
+    "Cryptocurrency represents a shift in economic thinking that",
+    "My few favourite things include, firstly,",
+    "Artificial and natural boundaries blur due to",
+    "Esports challenges the traditional definition of",
+    "The future of work is going to be",
 ]
 
 
 def analyze_activation_vector(vectors, goal):
     results_dict = {}
-    for sentence in sentences:
-        prompts = [sentences] * 5
+    for sentence in tqdm(sentences):
+        prompts = [sentence] * 30
 
         for vector in vectors:
             if vector.activation_additions is None:
@@ -90,7 +94,7 @@ def analyze_activation_vector(vectors, goal):
 # Let's go back to the wedding scenario. In this chart, we compare how the wedding steering vector of the otters previously found compares to the control, which is not using any steering vector whatsoever. We can see that our range is pretty large. But the weddings vector performs significantly better than control at achieving our goal.
 
 
-vectors, samples = analyze_activation_vector(
+results_dict = analyze_activation_vector(
     # https://www.lesswrong.com/posts/5spBue2z2tw4JuDCx/steering-gpt-2-xl-by-adding-an-activation-vector#9__Talking_about_weddings
     vectors=[
         SteeringVector(
@@ -140,7 +144,7 @@ vectors, samples = analyze_activation_vector(
             activation_additions=get_x_vector(
                 prompt1="Wedding Planning Adventures",
                 prompt2="Adventures in self-discovery",
-                coeff=4 / 3,
+                coeff=4,
                 act_name=20,
                 model=model,
                 pad_method="tokens_right",
@@ -152,7 +156,7 @@ vectors, samples = analyze_activation_vector(
             activation_additions=get_x_vector(
                 prompt1="Obsessed with weddings!",
                 prompt2="Obsessed with self-care!",
-                coeff=4 / 3,
+                coeff=4,
                 act_name=20,
                 model=model,
                 pad_method="tokens_right",
@@ -165,65 +169,86 @@ vectors, samples = analyze_activation_vector(
 
 # %%
 
-fig = go.Figure()
-for i, data_line in enumerate(vectors):
-    fig.add_trace(
-        go.Box(
-            y=[data_line.name] * len(data_line.completions),
-            x=[sample.eval_score for sample in samples[i]],
-            name=data_line.name,
-            boxpoints="all",
-            line=dict(width=0),
-            fillcolor="rgba(0,100,80,0)",
-            pointpos=0,
-            marker=dict(color="rgba(0,100,80,0.5)", size=10),
-            jitter=1,
+import textwrap
+
+# Data
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Data
+categories = [
+    "All combined",
+    "I talk about weddings constantly",
+    "Wedding Planning Adventures",
+    "Obsessed with weddings!",
+]
+
+# Create the figure and subplots
+fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(12, 9))
+
+# Iterate over each question and subplot
+for i, ax_row in enumerate(axes):
+    for j, ax in enumerate(ax_row):
+        # sentences is a flat list, so we need to index into it
+        sentence = sentences[i * 3 + j]
+        data = results_dict[sentence][1]
+        # Map samples to floats
+        data = [[x.eval_score for x in category] for category in data]
+        # data[i] corresponds to the ith category
+        ax.scatter(
+            data,
+            [[i + 1] * len(category) for i, category in enumerate(data)],
+            alpha=0.4,
+            color="blue",
         )
-    )
 
-fig.update_traces(orientation="h")
-fig.update_layout(template="plotly_white")
-fig.update_xaxes(
-    title="Wedding relatedness of completions<br><sup>Higher is better</sup>",
-    showline=True,
-    linewidth=1,
-    linecolor="black",
-    range=[-0.05, 1.05],
-    mirror=False,
-)  # add more details to x-axis
-fig.update_yaxes(
-    showline=False, linewidth=2, linecolor="black", mirror=True
-)  # add more details to y-axis
+        ax.set_xlim([0, 1])
+        ax.set_ylim([0.5, 4.5])  # Modified y-axis limits
+        ax.grid(axis="y", linestyle="--", alpha=0.2)
+        ax.tick_params(axis="y", length=0)
 
-fig.update_layout(
-    title_text="Combining high performing vectors improves steering",
-    showlegend=False,
-)  # add centered title
+        # Remove tick labels on y-axis
+        ax.set_yticklabels([])
 
-fig.show()
+        ax.set_yticks(np.arange(1, 5))
+        # Set category labels
+        if j == 0:
+            ax.set_yticklabels(categories)
+            ax.tick_params(
+                axis="y",
+                pad=10,
+            )  # Adjust the padding between labels and plot
 
-# %%
+        # Set subplot title (question heading)
+        ax.set_title(
+            f'"{textwrap.fill(sentence, width=40)}"', fontsize=10, pad=10, loc="left"
+        )
+
+        # Remove the box around each subplot
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+
+        # Add mean values to the right of each subplot
+        mean_values = [np.mean(category) for category in data]
+        for _i, mean_value in enumerate(mean_values):
+            ax.text(
+                1.05,
+                _i + 1,
+                f"{chr(0x03BC)}={mean_value:.2f}",
+                ha="left",
+                va="center",
+                fontsize=8,
+                # a beautiful light gray
+                color="#929292",
+            )
 
 
-def format_print(prompt, completion):
-    completion = completion.replace("\n", " ")
-    return f"**{prompt}** {completion}"
+# Adjust spacing between subplots
+plt.subplots_adjust(wspace=0.5, hspace=0.8, top=0.9, bottom=0.1)
 
-
-print("|Combined|I talk about weddings constantly|")
-print("|---|---|")
-for prompt, steered, steered_2 in zip(
-    ["Science is the great antidote to the poison of enthusiasm and superstition."]
-    * 20,
-    samples[0],
-    samples[1],
-):
-    print(
-        "|"
-        + format_print(prompt, steered.completion)
-        + "|"
-        + format_print(prompt, steered_2.completion)
-        + "|"
-    )
+# Show the plot
+plt.show()
 
 # %%
