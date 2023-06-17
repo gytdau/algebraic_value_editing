@@ -42,35 +42,47 @@ model: HookedTransformer = HookedTransformer.from_pretrained(
 # Let's observe that the model is steered more effectively when the steeering vector is related to the prompt.
 from IPython.display import display
 
+sentences = [
+    "In virtual reality, we often forget that",
+    "Understanding quantum physics relies on the premise that",
+    "Climate change is a present danger because",
+    "Language serves as",
+    "The debate about social media centers on",
+]
+
 
 def analyze_activation_vector(vectors, goal):
-    prompts = ["The morphology, evolution, and classification of plants,"] * 10
+    results_dict = {}
+    for sentence in sentences:
+        prompts = [sentences] * 5
 
-    for vector in vectors:
-        if vector.activation_additions is None:
-            completion = gen_using_hooks(
-                prompt_batch=prompts,
-                model=model,
-                hook_fns={},
-                seed=0,
-                temperature=1,
-                freq_penalty=1,
-                top_p=0.3,
-            ).completions
-        else:
-            completion = gen_using_activation_additions(
-                prompt_batch=prompts,
-                model=model,
-                activation_additions=vector.activation_additions,
-                seed=0,
-                temperature=1,
-                freq_penalty=1,
-                top_p=0.3,
-            ).completions
+        for vector in vectors:
+            if vector.activation_additions is None:
+                completion = gen_using_hooks(
+                    prompt_batch=prompts,
+                    model=model,
+                    hook_fns={},
+                    seed=0,
+                    temperature=1,
+                    freq_penalty=1,
+                    top_p=0.3,
+                ).completions
+            else:
+                completion = gen_using_activation_additions(
+                    prompt_batch=prompts,
+                    model=model,
+                    activation_additions=vector.activation_additions,
+                    seed=0,
+                    temperature=1,
+                    freq_penalty=1,
+                    top_p=0.3,
+                ).completions
 
-        vector.completions = completion
+            vector.completions = completion
 
-    return compare_vectors_with_goal(goal, prompts, vectors)
+        results_dict[sentence] = compare_vectors_with_goal(goal, prompts, vectors)
+
+    return results_dict
 
 
 # %%[markdown]

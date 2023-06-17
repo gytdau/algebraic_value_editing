@@ -94,5 +94,4 @@ plt.subplots_adjust(wspace=0.3, hspace=1)
 # Show the plot
 plt.show()
 
-
 # %%
