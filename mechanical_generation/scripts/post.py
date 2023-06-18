@@ -20,7 +20,7 @@ def get_database_rows(db_name):
     cursor = db.cursor()
     rows = cursor.execute(
         """
-        SELECT candidate_prompt, eval_score, act_name, challenge_id, challenge_prompt, candidate_id
+        SELECT candidate_prompt, eval_score, act_name, challenge_prompt, challenge_prompt, candidate_id, completion
         FROM simplified_results
         WHERE experiment_group = 'steered'
         """
@@ -122,8 +122,9 @@ import numpy as np
 
 def make_challenge_visualisation(rows, x_title, y_title, title_text):
     df = pd.DataFrame(rows)
-    # only where act_name = 20
-    # df = df[df["act_name"] == 16]
+    # Drop a candidate prompt which didn't work out for some  of the challenges
+    df = df[df["candidate_prompt"] != "creating THE PERFECT WEDDING"]
+    # df = df[df["challenge_prompt"] == "I went up to a friend and said,"]
     grouped = df.groupby("candidate_prompt")
     group_means = grouped["eval_score"].mean().sort_values(ascending=True)
 
@@ -137,7 +138,7 @@ def make_challenge_visualisation(rows, x_title, y_title, title_text):
 
     for name in group_means.index:
         group = grouped.get_group(name)
-        challenge_grouped = group.groupby("challenge_id")
+        challenge_grouped = group.groupby("challenge_prompt")
         for act_name, act_group in challenge_grouped:
             ax.scatter(
                 act_group["eval_score"],
@@ -152,13 +153,76 @@ def make_challenge_visualisation(rows, x_title, y_title, title_text):
     ax.set_title(title_text, loc="left")
     ax.spines["right"].set_visible(False)
     ax.spines["top"].set_visible(False)
-    ax.spines["bottom"].set_linewidth(2)
+    ax.spines["bottom"].set_visible(False)
     ax.spines["left"].set_visible(False)
-    ax.xaxis.set_tick_params(width=2)
+    ax.xaxis.set_tick_params(width=1)
     ax.yaxis.set_tick_params(width=0)
     ax.set_xlim([-0.05, 1.05])
     ax.grid(True, axis="y", linestyle="--", alpha=0.7)
 
+    plt.show()
+
+
+make_challenge_visualisation(
+    rows,
+    "Wedding relatedness of completions",
+    "",
+    "Some steering vectors work better than others",
+)
+
+
+# %%
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+
+def make_challenge_visualisation(rows, x_title, y_title, title_text):
+    df = pd.DataFrame(rows)
+
+    # Drop a candidate prompt which didn't work out for some  of the challenges
+    df = df[df["candidate_prompt"] != "creating THE PERFECT WEDDING"]
+
+    challenge_prompts = df["challenge_prompt"].unique()
+    num_challenges = len(challenge_prompts)
+
+    fig, axs = plt.subplots(1, num_challenges, figsize=(5 * num_challenges, 5))
+
+    group_means = (
+        df.groupby("candidate_prompt")["eval_score"].mean().sort_values(ascending=True)
+    )
+
+    for idx, challenge_prompt in enumerate(challenge_prompts):
+        ax = axs[idx]
+        challenge_group = df[df["challenge_prompt"] == challenge_prompt]
+
+        for name in group_means.index:
+            group = challenge_group[challenge_group["candidate_prompt"] == name]
+
+            ax.scatter(
+                group["eval_score"],
+                [name] * len(group),
+                c="blue",
+                alpha=0.5,
+                label=name,
+            )
+
+        ax.set_xlabel(x_title)
+        ax.set_ylabel(y_title)
+        ax.set_title(f'"{challenge_prompt}"', loc="left")
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+        ax.xaxis.set_tick_params(width=1)
+        ax.yaxis.set_tick_params(width=0)
+        ax.set_xlim([-0.05, 1.05])
+        ax.grid(axis="y", linestyle="--", alpha=0.2)
+
+        if idx > 0:
+            ax.set_yticklabels([])
+
+    plt.tight_layout()
     plt.show()
 
 
