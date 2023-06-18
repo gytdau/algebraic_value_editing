@@ -1,9 +1,24 @@
 # %%
 
 
+import textwrap
 from typing import List
 
+import eval_tools
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import torch
+from eval_tools import (
+    Sample,
+    SteeringVector,
+    compare_vectors_with_goal,
+    compare_with_goal,
+    run_eval,
+)
+from tqdm import tqdm
 from tqdm.notebook import tqdm
 from transformer_lens.HookedTransformer import HookedTransformer
 
@@ -13,19 +28,6 @@ from algebraic_value_editing.completion_utils import (
     gen_using_hooks,
 )
 from algebraic_value_editing.prompt_utils import ActivationAddition, get_x_vector
-from tqdm import tqdm
-
-import eval_tools
-from eval_tools import (
-    run_eval,
-    compare_with_goal,
-    Sample,
-    compare_vectors_with_goal,
-    SteeringVector,
-)
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 
 pd.set_option("display.max_colwidth", None)
 
@@ -169,13 +171,6 @@ results_dict = analyze_activation_vector(
 
 # %%
 
-import textwrap
-
-# Data
-import matplotlib.pyplot as plt
-import numpy as np
-
-# Data
 categories = [
     "All combined",
     "I talk about weddings constantly",
@@ -253,7 +248,6 @@ plt.show()
 
 # %%
 # Extract the data
-# Extract the data
 data = [results_dict[sentence][1] for sentence in results_dict]
 
 # Initialize a list to store mean values for each category
@@ -278,16 +272,28 @@ fig, ax = plt.subplots()
 ax.boxplot(mean_values, vert=False)
 
 # Set the title and labels
-ax.set_title("Scores per Category")
-ax.set_xlabel("Scores")
-ax.set_ylabel("Steering vectors")
+ax.set_title("Steering vector breakdown on broader set of prompts")
+ax.set_xlabel("Wedding relatedness of completions")
+
+# hide the top, right, and left spines
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["left"].set_visible(False)
 
 # set category labels
-ax.set_yticklabels(categories)
+yticklabels = ax.set_yticklabels(categories)
+
+yticklabels[0].set_style("italic")
+
+ax.xaxis.set_tick_params(pad=5)
+ax.yaxis.set_tick_params(pad=10)
 
 
 # Rotate the x-axis labels for better readability
 plt.xticks(rotation=45)
+
+# Make it bigger
+fig.set_size_inches(8, 6)
 
 # Show the plot
 plt.show()
