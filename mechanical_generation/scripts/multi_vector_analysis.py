@@ -252,3 +252,45 @@ plt.subplots_adjust(wspace=0.5, hspace=0.8, top=0.9, bottom=0.1)
 plt.show()
 
 # %%
+# Extract the data
+# Extract the data
+data = [results_dict[sentence][1] for sentence in results_dict]
+
+# Initialize a list to store mean values for each category
+mean_values = []
+
+# Calculate the mean for each category across all sentences
+for i in range(len(categories)):
+    category_scores = []
+    for sentence in data:
+        category_scores.extend(
+            [x.eval_score for x in sentence[i]]
+        )  # Extend the list with scores of the category for the current sentence
+
+    # print(category_scores)
+    print(len(category_scores))
+    mean_values.append(category_scores)
+
+# Create a new figure
+fig, ax = plt.subplots()
+
+# Create a box plot
+ax.boxplot(mean_values, vert=False)
+
+# Set the title and labels
+ax.set_title("Scores per Category")
+ax.set_xlabel("Scores")
+ax.set_ylabel("Steering vectors")
+
+# set category labels
+ax.set_yticklabels(categories)
+
+
+# Rotate the x-axis labels for better readability
+plt.xticks(rotation=45)
+
+# Show the plot
+plt.show()
+
+
+# %%
