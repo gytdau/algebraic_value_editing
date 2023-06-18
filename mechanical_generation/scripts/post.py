@@ -20,7 +20,7 @@ def get_database_rows(db_name):
     cursor = db.cursor()
     rows = cursor.execute(
         """
-        SELECT candidate_prompt, eval_score, act_name, challenge_id, challenge_prompt, candidate_id
+        SELECT candidate_prompt, eval_score, act_name, challenge_prompt, challenge_prompt, candidate_id, completion
         FROM simplified_results
         WHERE experiment_group = 'steered'
         """
@@ -102,9 +102,9 @@ def make_visualisation(rows, x_title, y_title, title_text):
 
 
 rows = get_database_rows("../main.db")
-rows = set_bold_candidate_prompt(
-    rows, "I talk about weddings constantly", "Original prompt"
-)
+# rows = set_bold_candidate_prompt(
+#     rows, "I talk about weddings constantly", "Original prompt"
+# )
 make_visualisation(
     rows,
     "Wedding relatedness of completions<br><sup>Higher is better</sup>",
@@ -116,150 +116,122 @@ make_visualisation(
 # %%[markdown]
 # # Challenge-wise
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 def make_challenge_visualisation(rows, x_title, y_title, title_text):
     df = pd.DataFrame(rows)
+    # Drop a candidate prompt which didn't work out for some  of the challenges
+    df = df[df["candidate_prompt"] != "creating THE PERFECT WEDDING"]
+    # df = df[df["challenge_prompt"] == "I went up to a friend and said,"]
     grouped = df.groupby("candidate_prompt")
     group_means = grouped["eval_score"].mean().sort_values(ascending=True)
 
-    fig = go.Figure()
+    fig, ax = plt.subplots(figsize=(10, 10))
 
     colors = {
-        1: "rgba(255, 127, 127, 0.5)",
-        2: "rgba(0, 119, 190, 0.7)",
-        3: "rgba(150, 123, 182, 0.6)",
+        1: "red",
+        2: "blue",
+        3: "purple",
     }
 
     for name in group_means.index:
         group = grouped.get_group(name)
-        challenge_grouped = group.groupby("challenge_id")
+        challenge_grouped = group.groupby("challenge_prompt")
         for act_name, act_group in challenge_grouped:
-            fig.add_trace(
-                go.Box(
-                    y=[name] * len(act_group),
-                    x=act_group["eval_score"],
-                    name=name,
-                    boxpoints="all",
-                    line=dict(width=0),
-                    fillcolor="rgba(0,100,80,0)",
-                    pointpos=0,
-                    jitter=1,
-                    marker_color=colors[act_name],
-                    marker=dict(size=10),
-                    showlegend=False,
-                )
+            ax.scatter(
+                act_group["eval_score"],
+                [name] * len(act_group),
+                c="blue",
+                alpha=0.5,
+                label=name if act_name == 1 else "",
             )
 
-    for act_name, color in colors.items():
-        act_name_formatted = df[df["challenge_id"] == act_name][
-            "challenge_prompt"
-        ].iloc[0]
-        fig.add_trace(
-            go.Scatter(
-                x=[None],
-                y=[None],
-                mode="markers",
-                marker=dict(size=10, color=color),
-                showlegend=True,
-                name=act_name_formatted,
-            )
-        )
+    ax.set_xlabel(x_title)
+    ax.set_ylabel(y_title)
+    ax.set_title(title_text, loc="left")
+    ax.spines["right"].set_visible(False)
+    ax.spines["top"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.xaxis.set_tick_params(width=1)
+    ax.yaxis.set_tick_params(width=0)
+    ax.set_xlim([-0.05, 1.05])
+    ax.grid(True, axis="y", linestyle="--", alpha=0.7)
 
-    fig.update_traces(orientation="h")
-    fig.update_layout(template="plotly_white")
-    fig.update_xaxes(
-        title=x_title,
-        showline=True,
-        linewidth=1,
-        linecolor="black",
-        range=[-0.05, 1.05],
-        mirror=False,
-    )
-    fig.update_yaxes(showline=False, linewidth=2, linecolor="black", mirror=True)
-    fig.update_layout(
-        showlegend=True,
-        height=1200,
-        width=700,
-        legend_title_text="Prompt used",
-        legend=dict(orientation="h", yanchor="bottom", y=1, xanchor="left", x=0),
-        margin=dict(l=50, r=50, t=200, b=100),
-    )
-    fig.update_layout(title_text=title_text)
-    fig.show()
+    plt.show()
 
 
 make_challenge_visualisation(
     rows,
-    "Wedding relatedness of completions<br><sup>Higher is better</sup>",
+    "Wedding relatedness of completions",
     "",
-    "Steering vectors work differently for different prompts",
+    "Some steering vectors work better than others",
 )
 
+
 # %%
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 
 def make_challenge_visualisation(rows, x_title, y_title, title_text):
     df = pd.DataFrame(rows)
-    pivot_df = df.pivot_table(
-        index="candidate_prompt",
-        columns="challenge_id",
-        values="eval_score",
-        aggfunc="mean",
-    ).reset_index()
 
+    # Drop a candidate prompt which didn't work out for some  of the challenges
+    df = df[df["candidate_prompt"] != "creating THE PERFECT WEDDING"]
 
+    challenge_prompts = df["challenge_prompt"].unique()
+    num_challenges = len(challenge_prompts)
 
-    # by mean of all challenges
-    pivot_df = pivot_df.sort_values(by=[1, 2, 3], ascending=False)
+    fig, axs = plt.subplots(1, num_challenges, figsize=(5 * num_challenges, 5))
 
-    fig = go.Figure()
-    colors = {
-        1: "rgba(255, 127, 127, 0.5)",
-        2: "rgba(0, 119, 190, 0.7)",
-        3: "rgba(150, 123, 182, 0.6)",
-    }
+    group_means = (
+        df.groupby("candidate_prompt")["eval_score"].mean().sort_values(ascending=True)
+    )
 
-    for challenge_id, color in colors.items():
-        challenge_prompt = df[df["challenge_id"] == challenge_id][
-            "challenge_prompt"
-        ].iloc[0]
-        fig.add_trace(
-            go.Bar(
-                name=challenge_prompt,
-                y=pivot_df["candidate_prompt"],
-                x=pivot_df[challenge_id],
-                marker_color=color,
+    for idx, challenge_prompt in enumerate(challenge_prompts):
+        ax = axs[idx]
+        challenge_group = df[df["challenge_prompt"] == challenge_prompt]
+
+        for name in group_means.index:
+            group = challenge_group[challenge_group["candidate_prompt"] == name]
+
+            ax.scatter(
+                group["eval_score"],
+                [name] * len(group),
+                c="blue",
+                alpha=0.5,
+                label=name,
             )
-        )
 
-    fig.update_traces(orientation="h")
-    fig.update_layout(template="plotly_white")
-    fig.update_xaxes(
-        title=x_title,
-        showline=True,
-        linewidth=1,
-        linecolor="black",
-        range=[-0.05, 1.05],
-        mirror=False,
-    )
-    fig.update_yaxes(showline=False, linewidth=2, linecolor="black", mirror=True)
-    fig.update_layout(
-        showlegend=True,
-        height=1200,
-        width=700,
-        legend_title_text="Prompt used",
-        legend=dict(orientation="h", yanchor="bottom", y=1, xanchor="left", x=0),
-        margin=dict(l=50, r=50, t=200, b=100),
-    )
-    fig.update_layout(title_text=title_text)
-    fig.show()
+        ax.set_xlabel(x_title)
+        ax.set_ylabel(y_title)
+        ax.set_title(f'"{challenge_prompt}"', loc="left")
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+        ax.xaxis.set_tick_params(width=1)
+        ax.yaxis.set_tick_params(width=0)
+        ax.set_xlim([-0.05, 1.05])
+        ax.grid(axis="y", linestyle="--", alpha=0.2)
+
+        if idx > 0:
+            ax.set_yticklabels([])
+
+    plt.tight_layout()
+    plt.show()
 
 
 make_challenge_visualisation(
     rows,
-    "Wedding relatedness of completions<br><sup>Higher is better</sup>",
+    "Wedding relatedness of completions",
     "",
     "Steering vectors work differently for different prompts",
 )
+
 
 # %%
